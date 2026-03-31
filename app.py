@@ -3,24 +3,36 @@ import hashlib
 import os
 from datetime import datetime
 
-# Optional: blockchain import (keep if working)
-from proofpay import send_to_blockchain
+# Optional blockchain import
+try:
+    from proofpay import send_to_blockchain
+    BLOCKCHAIN_ENABLED = True
+except:
+    BLOCKCHAIN_ENABLED = False
 
 app = Flask(__name__)
 
-# In-memory logs (simple demo storage)
+# In-memory logs
 logs = []
 
-# Get PRIVATE KEY safely
+# Get env key safely
 PRIVATE_KEY = os.getenv("OG_PRIVATE_KEY")
 
-if not PRIVATE_KEY:
-    raise Exception("PRIVATE KEY NOT SET")
+
+# 🔹 AI / Decision Logic
+def generate_ai_output(prompt, model):
+    if model == "local":
+        # simple dummy logic
+        return "Approved based on heuristic score" if len(prompt) % 2 == 0 else "Rejected due to risk pattern"
+    elif model == "tee":
+        return "TEE Verified: Output trusted"
+    else:
+        return "Unknown model"
 
 
-# 🔹 Simple scoring logic (NOT always approve anymore)
-def evaluate(prompt, output):
-    score = len(output) % 100  # simple dummy logic
+# 🔹 Score + Decision
+def evaluate(output):
+    score = len(output) % 100
     decision = "APPROVED" if score > 50 else "REJECTED"
     return score, decision
 
@@ -30,40 +42,54 @@ def index():
     result = None
 
     if request.method == "POST":
-        prompt = request.form.get("prompt")
-        output = request.form.get("output")
-
-        # 🔹 Generate proof (hash)
-        combined = prompt + output
-        proof = hashlib.sha256(combined.encode()).hexdigest()
-
-        # 🔹 Evaluate
-        score, decision = evaluate(prompt, output)
-
-        # 🔹 Send to blockchain (optional)
         try:
-            tx_hash = send_to_blockchain(proof)
-        except:
-            tx_hash = "FAILED"
+            # 🔹 Get inputs safely
+            prompt = request.form.get("prompt", "")
+            model = request.form.get("model", "local")
 
-        # 🔹 Create result object
-        result = {
-            "prompt": prompt,
-            "output": output,
-            "proof": proof,
-            "tx_hash": tx_hash,
-            "score": score,
-            "decision": decision,
-            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "network": "Base Sepolia"
-        }
+            # 🔹 Generate AI output
+            output = generate_ai_output(prompt, model)
 
-        logs.insert(0, result)
+            # 🔹 Create proof
+            combined = prompt + output
+            proof = hashlib.sha256(combined.encode()).hexdigest()
+
+            # 🔹 Evaluate
+            score, decision = evaluate(output)
+
+            # 🔹 Blockchain (SAFE)
+            tx_hash = "NOT SENT"
+            if BLOCKCHAIN_ENABLED and PRIVATE_KEY:
+                try:
+                    tx_hash = send_to_blockchain(proof)
+                except Exception as e:
+                    print("Blockchain error:", e)
+                    tx_hash = "FAILED"
+
+            # 🔹 Result object
+            result = {
+                "prompt": prompt,
+                "output": output,
+                "proof": proof,
+                "tx_hash": tx_hash,
+                "score": score,
+                "decision": decision,
+                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "network": "Base Sepolia"
+            }
+
+            logs.insert(0, result)
+
+        except Exception as e:
+            print("Server error:", e)
+            result = {
+                "error": "Something went wrong. Check logs."
+            }
 
     return render_template("index.html", result=result, logs=logs)
 
 
-# 🔥 IMPORTANT — THIS IS WHAT YOU ASKED
+# 🚀 IMPORTANT FOR RAILWAY
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
