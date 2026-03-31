@@ -1,65 +1,69 @@
 from flask import Flask, render_template, request
 import hashlib
-import json
-from web3 import Web3
 import os
+from datetime import datetime
+
+# Optional: blockchain import (keep if working)
+from proofpay import send_to_blockchain
 
 app = Flask(__name__)
 
-# Blockchain setup
-RPC = "https://sepolia.base.org"
-w3 = Web3(Web3.HTTPProvider(RPC))
-private_key = os.environ.get("OG_PRIVATE_KEY")
+# In-memory logs (simple demo storage)
+logs = []
 
-if not private_key:
+# Get PRIVATE KEY safely
+PRIVATE_KEY = os.getenv("OG_PRIVATE_KEY")
+
+if not PRIVATE_KEY:
     raise Exception("PRIVATE KEY NOT SET")
 
-account = w3.eth.account.from_key(private_key)
 
-
-# Generate proof
-def generate_proof(prompt, output):
-    raw = json.dumps({"p": prompt, "o": output})
-    return hashlib.sha256(raw.encode()).hexdigest()
+# 🔹 Simple scoring logic (NOT always approve anymore)
+def evaluate(prompt, output):
+    score = len(output) % 100  # simple dummy logic
+    decision = "APPROVED" if score > 50 else "REJECTED"
+    return score, decision
 
 
 @app.route("/", methods=["GET", "POST"])
 def index():
     result = None
-    status = None
-    tx_hash = None
 
     if request.method == "POST":
         prompt = request.form.get("prompt")
         output = request.form.get("output")
-        action = request.form.get("action")
 
-        proof = generate_proof(prompt, output)
+        # 🔹 Generate proof (hash)
+        combined = prompt + output
+        proof = hashlib.sha256(combined.encode()).hexdigest()
 
-        if action == "generate":
-            # Send small transaction on Base Sepolia
-            tx = {
-                "to": account.address,
-                "value": w3.to_wei(0.000001, "ether"),
-                "gas": 21000,
-                "gasPrice": w3.to_wei("1", "gwei"),
-                "nonce": w3.eth.get_transaction_count(account.address),
-            }
+        # 🔹 Evaluate
+        score, decision = evaluate(prompt, output)
 
-            signed_tx = w3.eth.account.sign_transaction(tx, private_key)
-            tx_hash = w3.eth.send_raw_transaction(signed_tx.raw_transaction).hex()
+        # 🔹 Send to blockchain (optional)
+        try:
+            tx_hash = send_to_blockchain(proof)
+        except:
+            tx_hash = "FAILED"
 
-            result = proof
+        # 🔹 Create result object
+        result = {
+            "prompt": prompt,
+            "output": output,
+            "proof": proof,
+            "tx_hash": tx_hash,
+            "score": score,
+            "decision": decision,
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "network": "Base Sepolia"
+        }
 
-        elif action == "verify":
-            given_proof = request.form.get("proof")
-            if given_proof == proof:
-                status = "VALID ✅"
-            else:
-                status = "INVALID ❌"
+        logs.insert(0, result)
 
-    return render_template("index.html", result=result, status=status, tx_hash=tx_hash)
+    return render_template("index.html", result=result, logs=logs)
 
 
+# 🔥 IMPORTANT — THIS IS WHAT YOU ASKED
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)

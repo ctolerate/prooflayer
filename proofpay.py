@@ -1,80 +1,33 @@
-from web3 import Web3
-import json
 import hashlib
-from datetime import datetime
+import datetime
 import os
+from web3 import Web3
 
-RPC = "https://sepolia.base.org"
-w3 = Web3(Web3.HTTPProvider(RPC))
+# RPC (Base Sepolia)
+RPC_URL = "https://sepolia.base.org"
 
-private_key = os.environ.get("OG_PRIVATE_KEY")
+# ENV PRIVATE KEY
+PRIVATE_KEY = os.environ.get("OG_PRIVATE_KEY")
 
-def generate_proof(prompt, output):
-    raw = json.dumps({"p": prompt, "o": output})
-    return hashlib.sha256(raw.encode()).hexdigest()
+# Wallet address (derived)
+w3 = Web3(Web3.HTTPProvider(RPC_URL))
+account = w3.eth.account.from_key(PRIVATE_KEY)
+ADDRESS = account.address
 
-def generate_receipt():
-    account = w3.eth.account.from_key(private_key)
-
-    prompt = input("\nEnter prompt: ")
-    output = input("Enter output: ")
-
-    proof = generate_proof(prompt, output)
+def send_to_blockchain(prompt, output):
+    data = prompt + output
+    proof = hashlib.sha256(data.encode()).hexdigest()
 
     tx = {
-        "to": account.address,
-        "value": w3.to_wei(0.000001, "ether"),
+        "to": ADDRESS,
+        "value": 0,
         "gas": 21000,
         "gasPrice": w3.to_wei("1", "gwei"),
-        "nonce": w3.eth.get_transaction_count(account.address),
+        "nonce": w3.eth.get_transaction_count(ADDRESS),
+        "chainId": 84532
     }
 
-    signed_tx = w3.eth.account.sign_transaction(tx, private_key)
+    signed_tx = w3.eth.account.sign_transaction(tx, PRIVATE_KEY)
     tx_hash = w3.eth.send_raw_transaction(signed_tx.raw_transaction)
 
-    receipt = {
-        "prompt": prompt,
-        "output": output,
-        "proof": proof,
-        "tx_hash": tx_hash.hex(),
-        "network": "Base Sepolia",
-        "timestamp": str(datetime.now())
-    }
-
-    print("\n=== VERIFIABLE RECEIPT ===")
-    print(json.dumps(receipt, indent=2))
-
-
-def verify_receipt():
-    prompt = input("\nEnter prompt: ")
-    output = input("Enter output: ")
-    given_proof = input("Enter proof: ")
-
-    real_proof = generate_proof(prompt, output)
-
-    if real_proof == given_proof:
-        print("\n✅ VALID — Proof matches")
-    else:
-        print("\n❌ INVALID — Data was altered")
-
-
-def main():
-    if not private_key:
-        raise Exception("PRIVATE KEY NOT SET")
-
-    print("\nChoose mode:")
-    print("1. Generate Receipt")
-    print("2. Verify Receipt")
-
-    choice = input("Enter 1 or 2: ")
-
-    if choice == "1":
-        generate_receipt()
-    elif choice == "2":
-        verify_receipt()
-    else:
-        print("Invalid choice")
-
-
-if __name__ == "__main__":
-    main()
+    return tx_hash.hex()

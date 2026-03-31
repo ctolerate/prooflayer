@@ -1,195 +1,186 @@
 <!DOCTYPE html>
-
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
     <title>ProofLayer</title>
+
     <style>
         body {
+            font-family: 'Segoe UI', sans-serif;
+            background: radial-gradient(circle at top, #0f172a, #020617);
+            color: #e2e8f0;
             margin: 0;
-            font-family: Arial, sans-serif;
-            background: radial-gradient(circle at top, #0a0f1f, #05070f);
-            color: #fff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
         }
 
-```
-    .container {
-        width: 500px;
-        padding: 30px;
-        border-radius: 16px;
-        background: #111827;
-        box-shadow: 0 0 40px rgba(0, 255, 200, 0.1);
-    }
+        .container {
+            max-width: 900px;
+            margin: auto;
+            padding: 40px 20px;
+        }
 
-    h1 {
-        text-align: center;
-        margin-bottom: 5px;
-    }
+        h1 {
+            text-align: center;
+            font-size: 36px;
+        }
 
-    p.subtitle {
-        text-align: center;
-        font-size: 14px;
-        color: #9ca3af;
-        margin-bottom: 25px;
-    }
+        .subtitle {
+            text-align: center;
+            color: #94a3b8;
+            margin-bottom: 10px;
+        }
 
-    textarea, input {
-        width: 100%;
-        padding: 12px;
-        margin-bottom: 15px;
-        border-radius: 8px;
-        border: none;
-        background: #020617;
-        color: #fff;
-    }
+        .small {
+            text-align: center;
+            font-size: 12px;
+            color: #94a3b8;
+            margin-bottom: 30px;
+        }
 
-    textarea {
-        height: 80px;
-    }
+        .card {
+            background: rgba(255,255,255,0.05);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
 
-    .buttons {
-        display: flex;
-        justify-content: space-between;
-    }
+        textarea, select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            background: #020617;
+            border: 1px solid #1e293b;
+            color: white;
+            border-radius: 6px;
+        }
 
-    button {
-        width: 48%;
-        padding: 12px;
-        border-radius: 8px;
-        border: none;
-        cursor: pointer;
-        font-weight: bold;
-    }
+        textarea {
+            height: 100px;
+        }
 
-    .generate {
-        background: #22c55e;
-    }
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: white;
+            cursor: pointer;
+        }
 
-    .verify {
-        background: #3b82f6;
-    }
+        .result-box {
+            background: #020617;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 10px;
+            word-break: break-all;
+        }
 
-    .result-box {
-        margin-top: 20px;
-        padding: 15px;
-        background: #020617;
-        border-radius: 10px;
-        font-size: 13px;
-        display: none;
-    }
+        .badge {
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            display: inline-block;
+            margin-top: 10px;
+        }
 
-    .status {
-        text-align: center;
-        font-weight: bold;
-        margin-top: 10px;
-    }
+        .approved { background: rgba(34,197,94,0.2); color: #22c55e; }
+        .rejected { background: rgba(239,68,68,0.2); color: #ef4444; }
+        .risky { background: rgba(251,191,36,0.2); color: #fbbf24; }
+        .neutral { background: rgba(148,163,184,0.2); color: #94a3b8; }
 
-    .verified {
-        color: #22c55e;
-    }
-
-    .invalid {
-        color: #ef4444;
-    }
-
-    .footer {
-        margin-top: 20px;
-        font-size: 12px;
-        color: #6b7280;
-        text-align: center;
-    }
-
-    .copy-btn {
-        margin-top: 10px;
-        padding: 6px 10px;
-        font-size: 12px;
-        background: #374151;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-    }
-
-    a {
-        color: #60a5fa;
-        text-decoration: none;
-    }
-</style>
-```
-
+        a { color: #3b82f6; }
+    </style>
 </head>
 
 <body>
 
 <div class="container">
 
-```
-<h1>⚡ ProofLayer</h1>
-<p class="subtitle">Verifiable AI Outputs • Base Sepolia</p>
+    <h1>⚡ ProofLayer</h1>
+    <p class="subtitle">Verifiable AI Decision Engine</p>
+    <p class="small">
+        Supports verifiable inference (TEE-style) + on-chain proof (Base Sepolia)
+    </p>
 
-<form method="POST">
-
-    <textarea name="prompt" placeholder="Enter prompt..." required></textarea>
-    <textarea name="output" placeholder="Enter AI output..." required></textarea>
-    <input name="proof" placeholder="Paste proof to verify...">
-
-    <div class="buttons">
-        <button class="generate" name="action" value="generate">Generate Proof</button>
-        <button class="verify" name="action" value="verify">Verify</button>
+    <div class="card">
+        <h3>How it works</h3>
+        <p class="small">
+            Prompt → AI Decision → Proof → Blockchain TX → Verification
+        </p>
     </div>
 
-</form>
+    <div class="card">
+        <form method="POST">
+            <textarea name="prompt" placeholder="Enter prompt..." required></textarea>
 
-{% if result %}
-<div class="result-box" style="display:block;">
+            <select name="mode">
+                <option value="local">Local AI</option>
+                <option value="verifiable">Verifiable AI (TEE)</option>
+            </select>
 
-    <strong>=== VERIFIABLE RECEIPT ===</strong><br><br>
+            <button type="submit">Generate & Verify</button>
+        </form>
+    </div>
 
-    <b>Prompt:</b><br>{{ result.prompt }}<br><br>
-    <b>Output:</b><br>{{ result.output }}<br><br>
+    {% if result %}
+    <div class="card">
+        <h3>Result</h3>
 
-    <b>Proof Hash:</b><br>
-    <span id="proof">{{ result.proof }}</span><br>
+        <div class="result-box">
+            <strong>Mode:</strong><br>
+            {{ result.mode }}
+        </div>
 
-    <button class="copy-btn" onclick="copyProof()">Copy Proof</button><br><br>
+        <div class="result-box">
+            <strong>Decision:</strong><br>
+            {{ result.decision }}
+        </div>
 
-    <b>Transaction:</b><br>
-    <a href="https://sepolia.basescan.org/tx/{{ result.tx_hash }}" target="_blank">
-        View on Explorer →
-    </a><br><br>
+        <div class="result-box">
+            <strong>AI Output:</strong><br>
+            {{ result.output }}
+        </div>
 
-    <b>Network:</b> Base Sepolia<br>
-    <b>Timestamp:</b> {{ result.timestamp }}
+        <div class="result-box">
+            <strong>Proof:</strong><br>
+            {{ result.proof }}
+        </div>
 
-    <div class="status {% if result.valid %}verified{% else %}invalid{% endif %}">
-        {% if result.valid %}
-            ✅ VERIFIED
+        <div class="result-box">
+            <strong>Transaction:</strong><br>
+            <a href="https://sepolia.basescan.org/tx/{{ result.tx_hash }}" target="_blank">
+                {{ result.tx_hash }}
+            </a>
+        </div>
+
+        {% if result.decision == "APPROVED" %}
+            <span class="badge approved">APPROVED</span>
+        {% elif result.decision == "REJECTED" %}
+            <span class="badge rejected">REJECTED</span>
+        {% elif result.decision == "RISKY" %}
+            <span class="badge risky">RISKY</span>
         {% else %}
-            ❌ INVALID
+            <span class="badge neutral">NEUTRAL</span>
         {% endif %}
+
+        <p class="small">Stored on Base Sepolia • Publicly Verifiable</p>
+        <p class="small">{{ result.timestamp }}</p>
     </div>
+    {% endif %}
+
+    {% if history %}
+    <div class="card">
+        <h3>Recent Activity</h3>
+        {% for item in history %}
+            <p class="small">
+                {{ item.prompt }} → {{ item.decision }} ({{ item.mode }})
+            </p>
+        {% endfor %}
+    </div>
+    {% endif %}
 
 </div>
-{% endif %}
-
-<div class="footer">
-    Powered by OpenGradient x402 + Base Sepolia<br><br>
-    AI outputs shouldn’t be trusted — they should be proven.
-</div>
-```
-
-</div>
-
-<script>
-function copyProof() {
-    const proof = document.getElementById("proof").innerText;
-    navigator.clipboard.writeText(proof);
-    alert("Proof copied!");
-}
-</script>
 
 </body>
 </html>
