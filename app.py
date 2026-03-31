@@ -3,38 +3,43 @@ import hashlib
 import os
 from datetime import datetime
 
-# Optional blockchain import
-try:
-    from proofpay import send_to_blockchain
-    BLOCKCHAIN_ENABLED = True
-except:
-    BLOCKCHAIN_ENABLED = False
-
 app = Flask(__name__)
 
 # In-memory logs
 logs = []
 
-# Get env key safely
-PRIVATE_KEY = os.getenv("OG_PRIVATE_KEY")
 
+# 🔹 Decision Logic (REALISTIC, NOT RANDOM)
+def analyze_prompt(prompt):
+    p = prompt.lower()
 
-# 🔹 AI / Decision Logic
-def generate_ai_output(prompt, model):
-    if model == "local":
-        # simple dummy logic
-        return "Approved based on heuristic score" if len(prompt) % 2 == 0 else "Rejected due to risk pattern"
-    elif model == "tee":
-        return "TEE Verified: Output trusted"
+    if "no history" in p or "new wallet" in p:
+        return {
+            "decision": "REJECTED",
+            "output": "Rejected due to insufficient history",
+            "score": 30
+        }
+
+    elif "trusted" in p or "active" in p or "old wallet" in p:
+        return {
+            "decision": "APPROVED",
+            "output": "Approved based on strong activity",
+            "score": 85
+        }
+
+    elif "suspicious" in p or "multiple requests" in p:
+        return {
+            "decision": "REJECTED",
+            "output": "Rejected due to suspicious behavior",
+            "score": 20
+        }
+
     else:
-        return "Unknown model"
-
-
-# 🔹 Score + Decision
-def evaluate(output):
-    score = len(output) % 100
-    decision = "APPROVED" if score > 50 else "REJECTED"
-    return score, decision
+        return {
+            "decision": "REJECTED",
+            "output": "Rejected due to unclear risk profile",
+            "score": 50
+        }
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -43,30 +48,25 @@ def index():
 
     if request.method == "POST":
         try:
-            # 🔹 Get inputs safely
+            # 🔹 Get inputs
             prompt = request.form.get("prompt", "")
             model = request.form.get("model", "local")
 
-            # 🔹 Generate AI output
-            output = generate_ai_output(prompt, model)
+            # 🔹 Analyze
+            analysis = analyze_prompt(prompt)
+
+            decision = analysis["decision"]
+            output = analysis["output"]
+            score = analysis["score"]
 
             # 🔹 Create proof
             combined = prompt + output
             proof = hashlib.sha256(combined.encode()).hexdigest()
 
-            # 🔹 Evaluate
-            score, decision = evaluate(output)
+            # 🔹 Simulated TX (clean demo)
+            tx_hash = "0x" + proof[:20]
 
-            # 🔹 Blockchain (SAFE)
-            tx_hash = "NOT SENT"
-            if BLOCKCHAIN_ENABLED and PRIVATE_KEY:
-                try:
-                    tx_hash = send_to_blockchain(proof)
-                except Exception as e:
-                    print("Blockchain error:", e)
-                    tx_hash = "FAILED"
-
-            # 🔹 Result object
+            # 🔹 Final result
             result = {
                 "prompt": prompt,
                 "output": output,
@@ -74,8 +74,9 @@ def index():
                 "tx_hash": tx_hash,
                 "score": score,
                 "decision": decision,
+                "model": model,
                 "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                "network": "Base Sepolia"
+                "network": "Base Sepolia (Simulated)"
             }
 
             logs.insert(0, result)
@@ -83,13 +84,13 @@ def index():
         except Exception as e:
             print("Server error:", e)
             result = {
-                "error": "Something went wrong. Check logs."
+                "error": "Something went wrong"
             }
 
     return render_template("index.html", result=result, logs=logs)
 
 
-# 🚀 IMPORTANT FOR RAILWAY
+# 🚀 Required for Railway
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
