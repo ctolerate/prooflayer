@@ -5,41 +5,42 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-# In-memory logs
 logs = []
 
 
-# 🔹 Decision Logic (REALISTIC, NOT RANDOM)
+# 🔥 REALISTIC DECISION ENGINE
 def analyze_prompt(prompt):
     p = prompt.lower()
 
-    if "no history" in p or "new wallet" in p:
-        return {
-            "decision": "REJECTED",
-            "output": "Rejected due to insufficient history",
-            "score": 30
-        }
+    positive_keywords = [
+        "trusted", "active", "old", "verified", "history", "consistent"
+    ]
 
-    elif "trusted" in p or "active" in p or "old wallet" in p:
-        return {
-            "decision": "APPROVED",
-            "output": "Approved based on strong activity",
-            "score": 85
-        }
+    negative_keywords = [
+        "new", "no history", "suspicious", "multiple", "unknown", "fast", "bot"
+    ]
 
-    elif "suspicious" in p or "multiple requests" in p:
-        return {
-            "decision": "REJECTED",
-            "output": "Rejected due to suspicious behavior",
-            "score": 20
-        }
+    score = 50  # base score
 
+    for word in positive_keywords:
+        if word in p:
+            score += 15
+
+    for word in negative_keywords:
+        if word in p:
+            score -= 20
+
+    # clamp score
+    score = max(0, min(100, score))
+
+    if score >= 60:
+        decision = "APPROVED"
+        output = "Approved based on positive behavioral signals"
     else:
-        return {
-            "decision": "REJECTED",
-            "output": "Rejected due to unclear risk profile",
-            "score": 50
-        }
+        decision = "REJECTED"
+        output = "Rejected due to risk indicators in input"
+
+    return decision, output, score
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -48,25 +49,16 @@ def index():
 
     if request.method == "POST":
         try:
-            # 🔹 Get inputs
             prompt = request.form.get("prompt", "")
             model = request.form.get("model", "local")
 
-            # 🔹 Analyze
-            analysis = analyze_prompt(prompt)
+            decision, output, score = analyze_prompt(prompt)
 
-            decision = analysis["decision"]
-            output = analysis["output"]
-            score = analysis["score"]
-
-            # 🔹 Create proof
             combined = prompt + output
             proof = hashlib.sha256(combined.encode()).hexdigest()
 
-            # 🔹 Simulated TX (clean demo)
             tx_hash = "0x" + proof[:20]
 
-            # 🔹 Final result
             result = {
                 "prompt": prompt,
                 "output": output,
@@ -82,15 +74,12 @@ def index():
             logs.insert(0, result)
 
         except Exception as e:
-            print("Server error:", e)
-            result = {
-                "error": "Something went wrong"
-            }
+            print("Error:", e)
+            result = {"error": "Something went wrong"}
 
     return render_template("index.html", result=result, logs=logs)
 
 
-# 🚀 Required for Railway
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
