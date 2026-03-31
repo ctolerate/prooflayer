@@ -1,203 +1,138 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>ProofLayer — Verifiable AI Engine</title>
+<meta charset="UTF-8">
+<title>ProofLayer</title>
 
-    <style>
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #0f172a, #020617);
-            color: #e2e8f0;
-        }
+<style>
+body {
+    margin: 0;
+    font-family: Arial;
+    background: #0f172a;
+    color: white;
+}
 
-        .container {
-            max-width: 900px;
-            margin: 40px auto;
-            padding: 20px;
-        }
+.container {
+    max-width: 800px;
+    margin: auto;
+    padding: 20px;
+}
 
-        h1 {
-            text-align: center;
-            font-size: 32px;
-            margin-bottom: 5px;
-        }
+.card {
+    background: #020617;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
 
-        .subtitle {
-            text-align: center;
-            color: #94a3b8;
-            margin-bottom: 30px;
-        }
+textarea, select {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    background: #020617;
+    color: white;
+    border: 1px solid #334155;
+    border-radius: 6px;
+}
 
-        .card {
-            background: rgba(15, 23, 42, 0.7);
-            backdrop-filter: blur(10px);
-            padding: 25px;
-            border-radius: 16px;
-            box-shadow: 0 0 40px rgba(0,0,0,0.4);
-            margin-bottom: 25px;
-        }
+button {
+    margin-top: 15px;
+    padding: 12px;
+    width: 100%;
+    background: #6366f1;
+    border: none;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+}
 
-        textarea, select {
-            width: 100%;
-            padding: 12px;
-            border-radius: 10px;
-            border: none;
-            margin-top: 10px;
-            background: #020617;
-            color: white;
-            font-size: 14px;
-        }
+.approved { color: #22c55e; }
+.rejected { color: #ef4444; }
+.review { color: #facc15; }
 
-        button {
-            margin-top: 15px;
-            width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: 10px;
-            background: linear-gradient(90deg, #6366f1, #8b5cf6);
-            color: white;
-            font-size: 16px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
+.label {
+    font-size: 12px;
+    color: #94a3b8;
+}
 
-        button:hover {
-            opacity: 0.9;
-        }
-
-        .result-box {
-            margin-top: 20px;
-            padding: 20px;
-            background: #020617;
-            border-radius: 12px;
-        }
-
-        .label {
-            color: #94a3b8;
-            font-size: 13px;
-        }
-
-        .value {
-            font-weight: bold;
-            margin-bottom: 12px;
-            word-break: break-all;
-        }
-
-        .approved {
-            color: #22c55e;
-        }
-
-        .rejected {
-            color: #ef4444;
-        }
-
-        .log-item {
-            background: #020617;
-            padding: 12px;
-            border-radius: 10px;
-            margin-bottom: 10px;
-        }
-
-        .copy-btn {
-            background: #1e293b;
-            border: none;
-            padding: 6px 10px;
-            border-radius: 6px;
-            color: white;
-            cursor: pointer;
-            font-size: 12px;
-        }
-    </style>
+.value {
+    margin-bottom: 10px;
+    word-break: break-all;
+}
+</style>
 </head>
+
 <body>
 
 <div class="container">
 
-    <h1>⚡ ProofLayer</h1>
-    <p class="subtitle">Verifiable AI Decisions • Cryptographic Proof • On-chain Ready</p>
+<h2>⚡ ProofLayer</h2>
 
-    <!-- INPUT -->
-    <div class="card">
-        <form method="POST">
+<div class="card">
+<form method="POST">
 
-            <label class="label">Enter Prompt</label>
-            <textarea name="prompt" rows="4" placeholder="e.g. Should I approve this wallet with no history?"></textarea>
+<label>Prompt</label>
+<textarea name="prompt">{{ result.prompt if result else '' }}</textarea>
 
-            <label class="label">Select Mode</label>
-            <select name="model">
-                <option value="local">Local AI</option>
-                <option value="tee">TEE Verified</option>
-            </select>
+<label>Mode</label>
+<select name="model">
+<option value="local" {% if result and result.model == "local" %}selected{% endif %}>Local</option>
+<option value="tee" {% if result and result.model == "tee" %}selected{% endif %}>TEE</option>
+</select>
 
-            <button type="submit">⚡ Run Verifiable Decision</button>
+<button type="submit">Run</button>
 
-        </form>
-    </div>
-
-    <!-- RESULT -->
-    {% if result %}
-    <div class="card result-box">
-
-        <div class="label">Mode</div>
-        <div class="value">{{ result.model }}</div>
-
-        <div class="label">Decision</div>
-        <div class="value {% if result.decision == 'APPROVED' %}approved{% else %}rejected{% endif %}">
-            {{ result.decision }}
-        </div>
-
-        <div class="label">AI Output</div>
-        <div class="value">{{ result.output }}</div>
-
-        <div class="label">Score</div>
-        <div class="value">{{ result.score }}</div>
-
-        <div class="label">Proof (SHA256)</div>
-        <div class="value">
-            {{ result.proof }}
-            <button class="copy-btn" onclick="copyText('{{ result.proof }}')">Copy</button>
-        </div>
-
-        <div class="label">Transaction</div>
-        <div class="value">
-            {{ result.tx_hash }}
-            <button class="copy-btn" onclick="copyText('{{ result.tx_hash }}')">Copy</button>
-        </div>
-
-        <div class="label">Network</div>
-        <div class="value">{{ result.network }}</div>
-
-        <div class="label">Timestamp</div>
-        <div class="value">{{ result.timestamp }}</div>
-
-    </div>
-    {% endif %}
-
-    <!-- LOGS -->
-    {% if logs %}
-    <div class="card">
-        <h3>📜 Recent Decisions</h3>
-
-        {% for log in logs[:5] %}
-        <div class="log-item">
-            <b>{{ log.decision }}</b> — {{ log.output }} <br>
-            <small>{{ log.timestamp }}</small>
-        </div>
-        {% endfor %}
-
-    </div>
-    {% endif %}
-
+</form>
 </div>
 
-<script>
-function copyText(text) {
-    navigator.clipboard.writeText(text);
-    alert("Copied!");
-}
-</script>
+
+{% if result %}
+<div class="card">
+
+<div class="label">Mode</div>
+<div class="value">{{ result.model }}</div>
+
+<div class="label">Decision</div>
+<div class="value 
+{% if result.decision == 'APPROVED' %}approved
+{% elif result.decision == 'REVIEW' %}review
+{% else %}rejected{% endif %}">
+{{ result.decision }}
+</div>
+
+<div class="label">Output</div>
+<div class="value">{{ result.output }}</div>
+
+<div class="label">Score</div>
+<div class="value">{{ result.score }}</div>
+
+<div class="label">Proof</div>
+<div class="value">{{ result.proof }}</div>
+
+<div class="label">Transaction</div>
+<div class="value">{{ result.tx_hash }}</div>
+
+<div class="label">Time</div>
+<div class="value">{{ result.timestamp }}</div>
+
+</div>
+{% endif %}
+
+
+{% if logs %}
+<div class="card">
+<h3>Recent</h3>
+
+{% for log in logs[:5] %}
+<div>
+<b>{{ log.decision }}</b> - {{ log.output }}
+</div>
+{% endfor %}
+
+</div>
+{% endif %}
+
+</div>
 
 </body>
 </html>

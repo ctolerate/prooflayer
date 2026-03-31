@@ -8,37 +8,34 @@ app = Flask(__name__)
 logs = []
 
 
-# 🔥 REALISTIC DECISION ENGINE
+# 🔥 FINAL DECISION ENGINE (BALANCED)
 def analyze_prompt(prompt):
     p = prompt.lower()
 
-    positive_keywords = [
-        "trusted", "active", "old", "verified", "history", "consistent"
-    ]
+    positive_keywords = ["trusted", "active", "old", "verified", "history", "consistent"]
+    negative_keywords = ["new", "no history", "suspicious", "multiple", "unknown", "fast", "bot"]
 
-    negative_keywords = [
-        "new", "no history", "suspicious", "multiple", "unknown", "fast", "bot"
-    ]
+    score = 50
 
-    score = 50  # base score
+    pos_hits = sum(word in p for word in positive_keywords)
+    neg_hits = sum(word in p for word in negative_keywords)
 
-    for word in positive_keywords:
-        if word in p:
-            score += 15
+    score += pos_hits * 12
+    score -= neg_hits * 12
 
-    for word in negative_keywords:
-        if word in p:
-            score -= 20
-
-    # clamp score
     score = max(0, min(100, score))
 
-    if score >= 60:
+    if score >= 65:
         decision = "APPROVED"
-        output = "Approved based on positive behavioral signals"
+        output = "Approved based on strong positive signals"
+
+    elif score >= 45:
+        decision = "REVIEW"
+        output = "Mixed signals detected — requires manual review"
+
     else:
         decision = "REJECTED"
-        output = "Rejected due to risk indicators in input"
+        output = "Rejected due to high risk indicators"
 
     return decision, output, score
 
