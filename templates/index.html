@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ProofLayer</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: radial-gradient(circle at top, #0a0f1f, #05070f);
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+```
+    .container {
+        width: 500px;
+        padding: 30px;
+        border-radius: 16px;
+        background: #111827;
+        box-shadow: 0 0 40px rgba(0, 255, 200, 0.1);
+    }
+
+    h1 {
+        text-align: center;
+        margin-bottom: 5px;
+    }
+
+    p.subtitle {
+        text-align: center;
+        font-size: 14px;
+        color: #9ca3af;
+        margin-bottom: 25px;
+    }
+
+    textarea, input {
+        width: 100%;
+        padding: 12px;
+        margin-bottom: 15px;
+        border-radius: 8px;
+        border: none;
+        background: #020617;
+        color: #fff;
+    }
+
+    textarea {
+        height: 80px;
+    }
+
+    .buttons {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    button {
+        width: 48%;
+        padding: 12px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    .generate {
+        background: #22c55e;
+    }
+
+    .verify {
+        background: #3b82f6;
+    }
+
+    .result-box {
+        margin-top: 20px;
+        padding: 15px;
+        background: #020617;
+        border-radius: 10px;
+        font-size: 13px;
+        display: none;
+    }
+
+    .status {
+        text-align: center;
+        font-weight: bold;
+        margin-top: 10px;
+    }
+
+    .verified {
+        color: #22c55e;
+    }
+
+    .invalid {
+        color: #ef4444;
+    }
+
+    .footer {
+        margin-top: 20px;
+        font-size: 12px;
+        color: #6b7280;
+        text-align: center;
+    }
+
+    .copy-btn {
+        margin-top: 10px;
+        padding: 6px 10px;
+        font-size: 12px;
+        background: #374151;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    a {
+        color: #60a5fa;
+        text-decoration: none;
+    }
+</style>
+```
+
+</head>
+
+<body>
+
+<div class="container">
+
+```
+<h1>⚡ ProofLayer</h1>
+<p class="subtitle">Verifiable AI Outputs • Base Sepolia</p>
+
+<form method="POST">
+
+    <textarea name="prompt" placeholder="Enter prompt..." required></textarea>
+    <textarea name="output" placeholder="Enter AI output..." required></textarea>
+    <input name="proof" placeholder="Paste proof to verify...">
+
+    <div class="buttons">
+        <button class="generate" name="action" value="generate">Generate Proof</button>
+        <button class="verify" name="action" value="verify">Verify</button>
+    </div>
+
+</form>
+
+{% if result %}
+<div class="result-box" style="display:block;">
+
+    <strong>=== VERIFIABLE RECEIPT ===</strong><br><br>
+
+    <b>Prompt:</b><br>{{ result.prompt }}<br><br>
+    <b>Output:</b><br>{{ result.output }}<br><br>
+
+    <b>Proof Hash:</b><br>
+    <span id="proof">{{ result.proof }}</span><br>
+
+    <button class="copy-btn" onclick="copyProof()">Copy Proof</button><br><br>
+
+    <b>Transaction:</b><br>
+    <a href="https://sepolia.basescan.org/tx/{{ result.tx_hash }}" target="_blank">
+        View on Explorer →
+    </a><br><br>
+
+    <b>Network:</b> Base Sepolia<br>
+    <b>Timestamp:</b> {{ result.timestamp }}
+
+    <div class="status {% if result.valid %}verified{% else %}invalid{% endif %}">
+        {% if result.valid %}
+            ✅ VERIFIED
+        {% else %}
+            ❌ INVALID
+        {% endif %}
+    </div>
+
+</div>
+{% endif %}
+
+<div class="footer">
+    Powered by OpenGradient x402 + Base Sepolia<br><br>
+    AI outputs shouldn’t be trusted — they should be proven.
+</div>
+```
+
+</div>
+
+<script>
+function copyProof() {
+    const proof = document.getElementById("proof").innerText;
+    navigator.clipboard.writeText(proof);
+    alert("Proof copied!");
+}
+</script>
+
+</body>
+</html>
