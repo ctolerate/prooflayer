@@ -8,34 +8,34 @@ app = Flask(__name__)
 logs = []
 
 
-# 🔥 FINAL DECISION ENGINE (BALANCED)
+# 🔥 FINAL STRONG DECISION ENGINE
 def analyze_prompt(prompt):
     p = prompt.lower()
 
-    positive_keywords = ["trusted", "active", "old", "verified", "history", "consistent"]
-    negative_keywords = ["new", "no history", "suspicious", "multiple", "unknown", "fast", "bot"]
+    positive_keywords = ["trusted", "active", "old", "verified", "consistent"]
+    negative_keywords = ["new", "no history", "suspicious", "unknown", "bot", "fast"]
 
     score = 50
 
     pos_hits = sum(word in p for word in positive_keywords)
     neg_hits = sum(word in p for word in negative_keywords)
 
-    score += pos_hits * 12
-    score -= neg_hits * 12
+    score += pos_hits * 20
+    score -= neg_hits * 25
 
     score = max(0, min(100, score))
 
     if score >= 65:
         decision = "APPROVED"
-        output = "Approved based on strong positive signals"
+        output = "Approved based on strong trust signals"
 
-    elif score >= 45:
-        decision = "REVIEW"
-        output = "Mixed signals detected — requires manual review"
-
-    else:
+    elif score <= 35:
         decision = "REJECTED"
         output = "Rejected due to high risk indicators"
+
+    else:
+        decision = "REVIEW"
+        output = "Borderline case — requires further validation"
 
     return decision, output, score
 
