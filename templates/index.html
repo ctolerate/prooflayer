@@ -2,47 +2,61 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>ProofLayer</title>
+<title>ProofLayer — Verifiable AI</title>
 
 <style>
 body {
     margin: 0;
-    font-family: Arial;
-    background: #0f172a;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #0f172a, #020617);
     color: white;
 }
 
 .container {
-    max-width: 800px;
+    max-width: 900px;
     margin: auto;
-    padding: 20px;
+    padding: 30px;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.header h1 {
+    font-size: 32px;
+}
+
+.header p {
+    color: #94a3b8;
 }
 
 .card {
-    background: #020617;
+    background: rgba(15,23,42,0.7);
     padding: 20px;
-    border-radius: 10px;
+    border-radius: 12px;
     margin-bottom: 20px;
 }
 
 textarea, select {
     width: 100%;
-    padding: 10px;
+    padding: 12px;
     margin-top: 10px;
     background: #020617;
-    color: white;
     border: 1px solid #334155;
-    border-radius: 6px;
+    color: white;
+    border-radius: 8px;
 }
 
 button {
     margin-top: 15px;
-    padding: 12px;
+    padding: 14px;
     width: 100%;
-    background: #6366f1;
+    background: linear-gradient(90deg,#6366f1,#8b5cf6);
     border: none;
+    border-radius: 8px;
     color: white;
-    border-radius: 6px;
+    font-size: 16px;
     cursor: pointer;
 }
 
@@ -51,7 +65,7 @@ button {
 .review { color: #facc15; }
 
 .label {
-    font-size: 12px;
+    font-size: 13px;
     color: #94a3b8;
 }
 
@@ -66,26 +80,44 @@ button {
 
 <div class="container">
 
-<h2>⚡ ProofLayer</h2>
+<!-- 🔥 HEADER -->
+<div class="header">
+<h1>⚡ ProofLayer</h1>
+<p>Verifiable AI Decision Engine</p>
+</div>
 
+<!-- 🔥 INFO SECTION (IMPORTANT FOR TEAM) -->
+<div class="card">
+<h3>⚙️ About</h3>
+<p>
+ProofLayer is a verifiable AI decision engine that analyzes user prompts and generates structured decisions (Approve / Review / Reject).
+Each output is converted into a cryptographic proof (SHA256) to simulate verifiable inference.
+</p>
+
+<p>
+This demo is inspired by OpenGradient’s vision of verifiable compute (x402), where AI outputs can be trusted, audited, and eventually verified using TEE-based inference and on-chain settlement.
+</p>
+</div>
+
+<!-- 🔥 INPUT -->
 <div class="card">
 <form method="POST">
 
-<label>Prompt</label>
+<label>Enter Prompt</label>
 <textarea name="prompt">{{ result.prompt if result else '' }}</textarea>
 
 <label>Mode</label>
 <select name="model">
-<option value="local" {% if result and result.model == "local" %}selected{% endif %}>Local</option>
-<option value="tee" {% if result and result.model == "tee" %}selected{% endif %}>TEE</option>
+<option value="local" {% if result and result.model == "local" %}selected{% endif %}>Local AI</option>
+<option value="tee" {% if result and result.model == "tee" %}selected{% endif %}>TEE Mode (Simulated)</option>
 </select>
 
-<button type="submit">Run</button>
+<button type="submit">Run Decision</button>
 
 </form>
 </div>
 
-
+<!-- 🔥 RESULT -->
 {% if result %}
 <div class="card">
 
@@ -112,20 +144,20 @@ button {
 <div class="label">Transaction</div>
 <div class="value">{{ result.tx_hash }}</div>
 
-<div class="label">Time</div>
+<div class="label">Timestamp</div>
 <div class="value">{{ result.timestamp }}</div>
 
 </div>
 {% endif %}
 
-
+<!-- 🔥 LOGS -->
 {% if logs %}
 <div class="card">
-<h3>Recent</h3>
+<h3>📜 Recent Decisions</h3>
 
 {% for log in logs[:5] %}
 <div>
-<b>{{ log.decision }}</b> - {{ log.output }}
+<b>{{ log.decision }}</b> — {{ log.output }}
 </div>
 {% endfor %}
 
